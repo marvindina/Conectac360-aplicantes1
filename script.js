@@ -2,12 +2,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // --- Configuration ---
     const WEBHOOK_URL = 'https://hooks.zapier.com/hooks/catch/24169034/ufof8kk/';
-    const REDIRECT_URL = 'https://forms.gle/vJ3s9r4mPFnQ4oZE7';
 
     // --- DOM Elements ---
     const form = document.getElementById('application-form');
-    const viewQualified = document.getElementById('view-qualified');
-    const viewDisqualified = document.getElementById('view-disqualified');
+    const viewThankYou = document.getElementById('view-thank-you');
     const submitBtn = document.getElementById('submit-btn');
     const btnText = document.getElementById('btn-text');
     const btnIcon = document.getElementById('btn-icon');
@@ -35,12 +33,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
         
-        // 2. Logic Filters
+        // 2. Logic Filters (Used for webhook data, but not for UI flow)
         const education = data.educationProfession;
         const agrees = document.getElementById('agreesToVariable').checked;
 
         // Disqualification Criteria
-        // Removed tech check as the field is no longer present.
         const isDisqualified = (education === 'Secundaria') || (!agrees);
         const status = isDisqualified ? 'DISQUALIFIED' : 'QUALIFIED';
 
@@ -87,24 +84,18 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         } catch (error) {
             console.error('Webhook error:', error);
-            // Continue flow even if webhook fails (optional)
+            // Continue flow even if webhook fails
         }
 
         // 6. Artificial Delay for UX (800ms)
         await new Promise(resolve => setTimeout(resolve, 800));
 
-        // 7. Switch Views
+        // 7. Show Universal Thank You View
         form.style.display = 'none';
         document.getElementById('intro-card').style.display = 'none';
-
-        if (status === 'QUALIFIED') {
-            viewQualified.classList.remove('hidden');
-            // Redirect after 2 seconds
-            setTimeout(() => {
-                window.location.href = REDIRECT_URL;
-            }, 2000);
-        } else {
-            viewDisqualified.classList.remove('hidden');
-        }
+        viewThankYou.classList.remove('hidden');
+        
+        // Scroll to top to ensure message is seen
+        window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 });
