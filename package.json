@@ -1,0 +1,12 @@
+{
+  "name": "conecta360-recruitment-form",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "serve .",
+    "build": "mkdir -p dist && cp index.html style.css script.js dist/"
+  },
+  "dependencies": {
+    "serve": "^14.2.1"
+  }
+}

@@ -1,0 +1,29 @@
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.animate-fade-in {
+    animation: fadeIn 0.5s ease-out forwards;
+}
+
+/* Custom styling for checked states to mimic React behavior */
+input[type="checkbox"]:checked + span {
+    color: #0f172a; /* slate-900 */
+}
+
+input[type="checkbox"]:checked ~ .tool-checkbox {
+    background-color: #FFFBEB; /* amber-50 */
+    border-color: #FFB300;
+}
+
+/* Helper classes to be toggled by JS */
+.bg-amber-50-custom {
+    background-color: #FFFBEB;
+}
+.border-amber-custom {
+    border-color: #FFB300;
+}
+.ring-amber-custom {
+    box-shadow: 0 0 0 1px #FFB300;
+}

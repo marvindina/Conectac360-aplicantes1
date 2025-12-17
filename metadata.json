@@ -1,0 +1,5 @@
+{
+  "name": "Filtro de Reclutamiento Inteligente",
+  "description": "Formulario de primer filtro para candidatos con análisis automático mediante IA para determinar viabilidad basada en perfil de ventas y comisiones.",
+  "requestFramePermissions": []
+}
