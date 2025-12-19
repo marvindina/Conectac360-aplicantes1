@@ -18,12 +18,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const getParam = (key) => params.get(key) || params.get(key.toUpperCase()) || params.get(key.charAt(0).toUpperCase() + key.slice(1)) || '';
     
-    document.getElementById('utm_source').value = getParam('utm_source');
-    document.getElementById('utm_medium').value = getParam('utm_medium');
-    document.getElementById('utm_campaign').value = getParam('utm_campaign') || getParam('utm_campaing'); // Handle common typo
-    document.getElementById('utm_term').value = getParam('utm_term');
-    document.getElementById('utm_content').value = getParam('utm_content');
-    document.getElementById('utm_adset').value = getParam('utm_adset');
+    const utm_source = getParam('utm_source');
+    const utm_medium = getParam('utm_medium');
+    const utm_campaign = getParam('utm_campaign') || getParam('utm_campaing');
+    const utm_term = getParam('utm_term');
+    const utm_content = getParam('utm_content');
+    const utm_adset = getParam('utm_adset');
+
+    // Assign to hidden inputs
+    document.getElementById('utm_source').value = utm_source;
+    document.getElementById('utm_medium').value = utm_medium;
+    document.getElementById('utm_campaign').value = utm_campaign;
+    document.getElementById('utm_term').value = utm_term;
+    document.getElementById('utm_content').value = utm_content;
+    document.getElementById('utm_adset').value = utm_adset;
 
     // --- Form Submission ---
     form.addEventListener('submit', async (e) => {
@@ -33,38 +41,39 @@ document.addEventListener('DOMContentLoaded', () => {
         const formData = new FormData(form);
         const data = Object.fromEntries(formData.entries());
         
-        // 2. Logic Filters (Used for webhook data, but not for UI flow)
+        // 2. Filter Logic (Internal data only)
         const education = data.educationProfession;
         const agrees = document.getElementById('agreesToVariable').checked;
-
-        // Disqualification Criteria
         const isDisqualified = (education === 'Secundaria') || (!agrees);
         const status = isDisqualified ? 'DISQUALIFIED' : 'QUALIFIED';
 
-        // 3. Construct Payload (JSON)
+        // 3. Construct Flattened Payload (Best for Zapier)
         const payload = {
+            // Form Fields
             nombre_completo: data.fullName,
             edad: data.age,
             correo_electronico: data.email,
-            numero_whatsapp: `${data.countryCode} ${data.whatsapp}`, // Combined phone
-            formacion_academica_profesion: data.educationProfession,
-            acepta_esquema_variable: agrees,
+            codigo_pais: data.countryCode,
+            whatsapp_local: data.whatsapp,
+            whatsapp_completo: `${data.countryCode}${data.whatsapp}`,
+            formacion_academica: data.educationProfession,
+            acepta_comisiones: agrees ? 'SÍ' : 'NO',
             
+            // Logic status
             status_filtro: status,
 
-            utm: {
-                utm_source: data.utm_source,
-                utm_medium: data.utm_medium,
-                utm_campaign: data.utm_campaign,
-                utm_adset: data.utm_adset,
-                utm_content: data.utm_content,
-                utm_term: data.utm_term
-            },
+            // UTM Parameters (Flattened for easy mapping)
+            utm_source: utm_source,
+            utm_medium: utm_medium,
+            utm_campaign: utm_campaign,
+            utm_adset: utm_adset,
+            utm_content: utm_content,
+            utm_term: utm_term,
 
-            metadata: {
-                user_agent: navigator.userAgent,
-                timestamp: new Date().toISOString()
-            }
+            // Technical Metadata
+            source_url: window.location.href,
+            user_agent: navigator.userAgent,
+            timestamp: new Date().toLocaleString('es-MX', { timeZone: 'UTC' })
         };
 
         // 4. Update UI to Loading
@@ -73,29 +82,28 @@ document.addEventListener('DOMContentLoaded', () => {
         btnIcon.classList.add('hidden');
         btnSpinner.classList.remove('hidden');
 
-        // 5. Send to Webhook
+        // 5. Send to Webhook (as JSON string)
         try {
             await fetch(WEBHOOK_URL, {
                 method: 'POST',
+                mode: 'no-cors', // Ensures submission even if CORS is not configured on the hook
                 body: JSON.stringify(payload),
                 headers: {
-                    'Content-Type': 'text/plain;charset=UTF-8' // Avoid CORS preflight
+                    'Content-Type': 'text/plain;charset=UTF-8'
                 }
             });
         } catch (error) {
-            console.error('Webhook error:', error);
-            // Continue flow even if webhook fails
+            console.error('Webhook Error:', error);
         }
 
-        // 6. Artificial Delay for UX (800ms)
-        await new Promise(resolve => setTimeout(resolve, 800));
+        // 6. Visual feedback delay
+        await new Promise(resolve => setTimeout(resolve, 1000));
 
-        // 7. Show Universal Thank You View
+        // 7. Success View (Always show this as per request)
         form.style.display = 'none';
         document.getElementById('intro-card').style.display = 'none';
         viewThankYou.classList.remove('hidden');
         
-        // Scroll to top to ensure message is seen
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
 });
